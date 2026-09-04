@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 تطبيق إدارة الأدوية الذكي - معاينة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Notch */
+        .phone-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 28px;
+            background: black;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f5;
+            padding-top: 40px;
+            overflow: hidden;
+        }
+
+        /* App Bar */
+        .app-bar {
+            background: linear-gradient(135deg, #6366f1 0%, #6366f1 100%);
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 60px;
+        }
+
+        /* Medicine Card */
+        .medicine-card {
+            background: white;
+            margin: 12px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #6366f1;
+        }
+
+        .medicine-card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        .medicine-card p {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .medicine-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stock-info {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* Stat Cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #e5e7eb;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #9ca3af;
+        }
+
+        .nav-item.active {
+            color: #6366f1;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+        }
+
+        /* Screen Content */
+        .screen-content {
+            display: none;
+        }
+
+        .screen-content.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* Button */
+        .btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 90%;
+            margin: 12px auto;
+        }
+
+        .btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Chart */
+        .chart-container {
+            background: white;
+            margin: 12px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+
+        .bar-chart {
+            height: 150px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            min-height: 20px;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        /* Settings */
+        .settings-item {
+            background: white;
+            margin: 8px 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #10b981;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            right: auto;
+            left: 2px;
+        }
+
+        /* Error Alert */
+        .error-banner {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+            padding: 12px 16px;
+            margin: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .error-banner.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Success Alert */
+        .success-banner {
+            background: #dcfce7;
+            border-left: 4px solid #16a34a;
+            color: #166534;
+            padding: 12px 16px;
+            margin: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .success-banner.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Home Screen -->
+            <div id="homeScreen" class="screen-content active">
+                <div class="app-bar">💊 إدارة الأدوية</div>
+                <div class="content" id="homeContent">
+                    <div class="medicine-card">
+                        <h3>الأسبرين</h3>
+                        <p>مسكن ألم</p>
+                        <div class="medicine-info">
+                            <span>500 ملغ</span>
+                            <span>أقراص</span>
+                        </div>
+                        <div class="stock-info">
+                            <span>المخزون:</span>
+                            <span>20 وحدة</span>
+                        </div>
+                    </div>
+
+                    <div class="medicine-card">
+                        <h3>الأموكسيسيلين</h3>
+                        <p>مضاد حيوي</p>
+                        <div class="medicine-info">
+                            <span>250 ملغ</span>
+                            <span>كبسولة</span>
+                        </div>
+                        <div class="stock-info">
+                            <span>المخزون:</span>
+                            <span style="color: #f59e0b;"><strong>5 وحدات ⚠️</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="medicine-card">
+                        <h3>الفيتامين C</h3>
+                        <p>فيتامينات</p>
+                        <div class="medicine-info">
+                            <span>1000 ملغ</span>
+                            <span>أقراص</span>
+                        </div>
+                        <div class="stock-info">
+                            <span>المخزون:</span>
+                            <span>15 وحدة</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminders Screen -->
+            <div id="remindersScreen" class="screen-content">
+                <div class="app-bar">🔔 التنبيهات</div>
+                <div class="content">
+                    <div class="medicine-card" style="border-left-color: #10b981;">
+                        <h3>الأسبرين</h3>
+                        <p>⏰ 08:00 صباحاً</p>
+                        <div style="margin-top: 8px;">
+                            <span class="badge badge-success">✓ تم التناول</span>
+                        </div>
+                    </div>
+
+                    <div class="medicine-card" style="border-left-color: #3b82f6;">
+                        <h3>الأموكسيسيلين</h3>
+                        <p>⏰ 02:00 مساءً</p>
+                        <div style="margin-top: 8px;">
+                            <span class="badge" style="background: #dbeafe; color: #1e40af;">⏳ في الانتظار</span>
+                        </div>
+                    </div>
+
+                    <div class="medicine-card" style="border-left-color: #f59e0b;">
+                        <h3>الفيتامين C</h3>
+                        <p>⏰ 06:00 مساءً</p>
+                        <div style="margin-top: 8px;">
+                            <span class="badge badge-warning">⚠️ تذكير قريب</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Screen -->
+            <div id="reportsScreen" class="screen-content">
+                <div class="app-bar">📊 التقارير</div>
+                <div class="content">
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-label">الالتزام اليومي</div>
+                            <div class="stat-value">85%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">💊</div>
+                            <div class="stat-label">الأدوية النشطة</div>
+                            <div class="stat-value">5</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-label">الجرعات المفقودة</div>
+                            <div class="stat-value">2</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-label">التكلفة الشهرية</div>
+                            <div class="stat-value">250 ر.س</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart-title">نسبة الالتزام الأسبوعية</div>
+                        <div class="bar-chart">
+                            <div class="bar" style="height: 80%; background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+                                <div class="bar-label">الأحد</div>
+                            </div>
+                            <div class="bar" style="height: 90%; background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+                                <div class="bar-label">الاثنين</div>
+                            </div>
+                            <div class="bar" style="height: 75%; background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+                                <div class="bar-label">الثلاثاء</div>
+                            </div>
+                            <div class="bar" style="height: 95%; background: linear-gradient(180deg, #10b981 0%, #059669 100%);">
+                                <div class="bar-label">الأربعاء</div>
+                            </div>
+                            <div class="bar" style="height: 85%; background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+                                <div class="bar-label">الخميس</div>
+                            </div>
+                            <div class="bar" style="height: 100%; background: linear-gradient(180deg, #10b981 0%, #059669 100%);">
+                                <div class="bar-label">الجمعة</div>
+                            </div>
+                            <div class="bar" style="height: 70%; background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);">
+                                <div class="bar-label">السبت</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div id="settingsScreen" class="screen-content">
+                <div class="app-bar">⚙️ الإعدادات</div>
+                <div class="content">
+                    <div style="padding: 12px; font-size: 12px; font-weight: bold; color: #6366f1;">الإعدادات العامة</div>
+                    <div class="settings-item">
+                        <span>🌙 الوضع المظلم</span>
+                        <div class="toggle-switch"></div>
+                    </div>
+                    <div class="settings-item">
+                        <span>🔔 تفعيل التنبيهات</span>
+                        <div class="toggle-switch active"></div>
+                    </div>
+
+                    <div style="padding: 12px; font-size: 12px; font-weight: bold; color: #6366f1; margin-top: 12px;">اللغة والمنطقة</div>
+                    <div class="settings-item">
+                        <span>🌐 اللغة</span>
+                        <span style="color: #6b7280; font-size: 12px;">العربية ▸</span>
+                    </div>
+
+                    <div style="padding: 12px; font-size: 12px; font-weight: bold; color: #6366f1; margin-top: 12px;">الخصوصية والأمان</div>
+                    <div class="settings-item">
+                        <span>🔐 قفل التطبيق</span>
+                        <span style="color: #6b7280; font-size: 12px;">▸</span>
+                    </div>
+                    <div class="settings-item">
+                        <span>🗑️ مسح البيانات</span>
+                        <span style="color: #dc2626; font-size: 12px;">▸</span>
+                    </div>
+
+                    <div style="padding: 12px; font-size: 12px; font-weight: bold; color: #6366f1; margin-top: 12px;">حول التطبيق</div>
+                    <div class="settings-item">
+                        <span>📱 إصدار التطبيق</span>
+                        <span style="color: #6b7280; font-size: 12px;">v1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchScreen('home', this)">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">الرئيسية</div>
+            </div>
+            <div class="nav-item" onclick="switchScreen('reminders', this)">
+                <div class="nav-icon">🔔</div>
+                <div class="nav-label">التنبيهات</div>
+            </div>
+            <div class="nav-item" onclick="switchScreen('reports', this)">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">التقارير</div>
+            </div>
+            <div class="nav-item" onclick="switchScreen('settings', this)">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">الإعدادات</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchScreen(screen, element) {
+            // Hide all screens
+            document.querySelectorAll('.screen-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected screen
+            const screenMap = {
+                'home': 'homeScreen',
+                'reminders': 'remindersScreen',
+                'reports': 'reportsScreen',
+                'settings': 'settingsScreen'
+            };
+
+            document.getElementById(screenMap[screen]).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Add interactivity to toggle switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Simulate adding a medicine
+        window.addEventListener('load', function() {
+            console.log('✅ تطبيق إدارة الأدوية جاهز!');
+            console.log('📱 جميع الشاشات تعمل بشكل صحيح');
+            console.log('🎨 التصميم متوافق مع جميع الأجهزة');
+        });
+    </script>
+</body>
+</html>
